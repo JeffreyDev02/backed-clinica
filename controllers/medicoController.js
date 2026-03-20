@@ -22,7 +22,12 @@ exports.obtenerMedicoPorId = (req, res) => {
 };
 
 exports.crearMedico = (req, res) => {
-    const { nombre, apellido, telefono } = req.body;
+    const { nombre, apellido, telefono } = req.body || {};
+
+    if (!nombre || !apellido || !telefono) {
+        return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+    }
+
     const sql = 'INSERT INTO medico (nombre, apellido, telefono) VALUES (?, ?, ?)';
     db.query(sql, [nombre, apellido, telefono], (err, result) => {
         if (err) {

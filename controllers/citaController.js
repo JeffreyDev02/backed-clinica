@@ -22,7 +22,12 @@ exports.obtenerCitaPorId = (req, res) => {
 };
 
 exports.crearCita = (req, res) => {
-    const { id_paciente, id_medico, fecha, hora, estado } = req.body;
+    const { id_paciente, id_medico, fecha, hora, estado } = req.body || {};
+
+    if (!id_paciente || !id_medico || !fecha || !hora || !estado) {
+        return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+    }
+
     const sql = 'INSERT INTO cita (id_paciente, id_medico, fecha, hora, estado) VALUES (?, ?, ?, ?, ?)';
     db.query(sql, [id_paciente, id_medico, fecha, hora, estado], (err, result) => {
         if (err) {

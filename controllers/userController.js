@@ -64,7 +64,7 @@ exports.deleteUser = (req, res) => {
     if (err) res.status(500).json({ message: "Error al hacer la peticion" });
 
     if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Usuario no encontrado" });
+      return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
     res.json({ message: "Usuario eliminado" });
