@@ -16,6 +16,7 @@ const medicoRoutes = require('./routes/medicoRoutes');
 const citaRoutes = require('./routes/citaRoutes');
 const consultaRoutes = require('./routes/consultaRoutes');
 const medicamentoRoutes = require('./routes/medicamentoRoutes');
+const especialidadRoutes = require('./routes/especialidadRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/pacientes', pacienteRoutes);
@@ -23,6 +24,7 @@ app.use('/api/medicos', medicoRoutes);
 app.use('/api/citas', citaRoutes);
 app.use('/api/consultas', consultaRoutes);
 app.use('/api/medicamentos', medicamentoRoutes);
+app.use('/api/especialidades', especialidadRoutes);
 
 app.listen(process.env.PORT, () => {
     console.log(`Servidor corriendo en el puerto ${process.env.PORT}`)
