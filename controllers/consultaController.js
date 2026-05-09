@@ -143,17 +143,27 @@ exports.obtenerConsultas = (req, res) => {
     });
 };
 
-// Obtener una consulta por su propio ID
+// Obtener una consulta por su propio ID (incluye medicamentos de la receta)
 exports.obtenerConsultaPorId = (req, res) => {
     const { id } = req.params;
-    const sql = 'SELECT * FROM consulta WHERE id_consulta = ?';
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            return res.status(500).json({ message: 'Error al obtener la consulta', error: err });
-        }
-        if (result.length === 0) {
-            return res.status(404).json({ message: 'Consulta no encontrada' });
-        }
-        res.json(result[0]);
+
+    const sqlConsulta = 'SELECT * FROM consulta WHERE id_consulta = ?';
+    db.query(sqlConsulta, [id], (err, result) => {
+        if (err) return res.status(500).json({ message: 'Error al obtener la consulta', error: err });
+        if (result.length === 0) return res.status(404).json({ message: 'Consulta no encontrada' });
+
+        const consulta = result[0];
+
+        const sqlMeds = `
+            SELECT rm.id_medicamento, rm.dosis, med.nombre
+            FROM receta r
+            JOIN receta_medicamento rm ON r.id_receta = rm.id_receta
+            JOIN medicamento med ON rm.id_medicamento = med.id_medicamento
+            WHERE r.id_consulta = ?
+        `;
+        db.query(sqlMeds, [id], (err2, meds) => {
+            if (err2) return res.status(500).json({ message: 'Error al obtener medicamentos', error: err2 });
+            res.json({ ...consulta, medicamentos: meds });
+        });
     });
 };

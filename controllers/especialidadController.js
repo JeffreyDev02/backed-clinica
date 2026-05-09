@@ -28,14 +28,14 @@ exports.obtenerEspecialidadPorId = (req, res) => {
 
 // Crear una nueva especialidad
 exports.crearEspecialidad = (req, res) => {
-    const { nombre } = req.body;
+    const { nombre, descripcion } = req.body;
 
     if (!nombre) {
         return res.status(400).json({ message: 'El nombre de la especialidad es obligatorio' });
     }
 
-    const sql = 'INSERT INTO especialidad (nombre) VALUES (?)';
-    db.query(sql, [nombre], (err, result) => {
+    const sql = 'INSERT INTO especialidad (nombre, descripcion) VALUES (?, ?)';
+    db.query(sql, [nombre, descripcion], (err, result) => {
         if (err) {
             return res.status(500).json({ message: 'Error al crear especialidad', error: err });
         }
@@ -46,14 +46,14 @@ exports.crearEspecialidad = (req, res) => {
 // Actualizar una especialidad
 exports.actualizarEspecialidad = (req, res) => {
     const { id } = req.params;
-    const { nombre } = req.body;
+    const { nombre, descripcion } = req.body;
 
     if (!nombre) {
         return res.status(400).json({ message: 'El nombre de la especialidad es obligatorio' });
     }
 
-    const sql = 'UPDATE especialidad SET nombre = ? WHERE id_especialidad = ?';
-    db.query(sql, [nombre, id], (err, result) => {
+    const sql = 'UPDATE especialidad SET nombre = ?, descripcion = ? WHERE id_especialidad = ?';
+    db.query(sql, [nombre, descripcion, id], (err, result) => {
         if (err) {
             return res.status(500).json({ message: 'Error al actualizar especialidad', error: err });
         }

@@ -11,7 +11,7 @@ exports.obtenerPacientes = (req, res) => {
 };
 
 exports.obtenerPacientePorId = (req, res) => {
-  const id = req.params;
+  const { id } = req.params;
 
   const query = "SELECT * FROM paciente WHERE id_paciente = ?";
 
