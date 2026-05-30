@@ -10,12 +10,14 @@ CREATE TABLE usuario (
     nombre VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(100) NOT NULL,
-    rol VARCHAR(60) NOT NULL
+    rol ENUM('admin','medico','recepcion') NOT NULL
 );
 
 INSERT INTO usuario VALUES
-(1,'Admin','admin@mediconnect.com','123456','admin'),
-(2,'Jeffrey','jeffrey@gmail.com','123456','admin');
+(1,'Admin','admin@mediconnect.com','$2b$10$SCQePuG6.vPIycTYcXBS8.xs5h33/b5bEuAYQQIv38mA3eH2jctt.','admin'),
+(2,'Jeffrey','jeffrey@gmail.com','$2b$10$SCQePuG6.vPIycTYcXBS8.xs5h33/b5bEuAYQQIv38mA3eH2jctt.','admin'),
+(3,'Médico General','medico@mediconnect.com','$2b$10$bbGn9WbSFTmK62VS34eonO3wtZFK7F8pf0SMcaUTnvhbphBQq2Vcy','medico'),
+(4,'Recepción','recepcion@mediconnect.com','$2b$10$g.hg2pCFEvyKu.x9DcDJwefavLQmKpmntWwcpYDWGwB3.tp/vr/cy','recepcion');
 
 -- =========================================
 -- TABLA PACIENTE
@@ -23,11 +25,11 @@ INSERT INTO usuario VALUES
 
 CREATE TABLE paciente (
     id_paciente INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    apellido VARCHAR(100),
-    fecha_nacimiento DATE,
-    telefono VARCHAR(20),
-    direccion VARCHAR(255)
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
+    telefono VARCHAR(20) NOT NULL,
+    direccion VARCHAR(255) NOT NULL
 );
 
 INSERT INTO paciente VALUES
@@ -53,9 +55,9 @@ INSERT INTO paciente VALUES
 
 CREATE TABLE medico (
     id_medico INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    apellido VARCHAR(100),
-    telefono VARCHAR(20)
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20) NOT NULL
 );
 
 INSERT INTO medico VALUES
@@ -132,20 +134,22 @@ INSERT INTO medico_especialidad VALUES
 
 CREATE TABLE cita (
     id_cita INT AUTO_INCREMENT PRIMARY KEY,
-    id_paciente INT,
-    id_medico INT,
-    fecha DATE,
-    hora TIME,
-    estado VARCHAR(50),
+    id_paciente INT NOT NULL,
+    id_medico INT NOT NULL,
+    fecha DATE NOT NULL,
+    hora TIME NOT NULL,
+    estado ENUM('Normal','Urgente','Cancelada','Completada') NOT NULL,
+    UNIQUE KEY uq_cita_medico_horario (id_medico,fecha,hora),
+    UNIQUE KEY uq_cita_paciente_horario (id_paciente,fecha,hora),
 
     FOREIGN KEY(id_paciente)
     REFERENCES paciente(id_paciente)
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
 
     FOREIGN KEY(id_medico)
     REFERENCES medico(id_medico)
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
@@ -172,17 +176,18 @@ INSERT INTO cita VALUES
 
 CREATE TABLE consulta (
     id_consulta INT AUTO_INCREMENT PRIMARY KEY,
-    id_cita INT,
-    diagnostico TEXT,
-    tratamiento TEXT,
+    id_cita INT NOT NULL UNIQUE,
+    diagnostico TEXT NOT NULL,
+    tratamiento TEXT NOT NULL,
+    comentarios TEXT,
 
     FOREIGN KEY(id_cita)
     REFERENCES cita(id_cita)
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
-INSERT INTO consulta VALUES
+INSERT INTO consulta (id_consulta,id_cita,diagnostico,tratamiento) VALUES
 (1,1,'Gripe común','Reposo e hidratación'),
 (2,2,'Dolor abdominal','Dieta blanda'),
 (3,3,'Migraña','Medicamento y descanso'),
@@ -205,26 +210,30 @@ INSERT INTO consulta VALUES
 
 CREATE TABLE medicamento (
     id_medicamento INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(100),
-    descripcion TEXT
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    stock INT NOT NULL DEFAULT 0,
+    precio DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    CONSTRAINT chk_medicamento_stock CHECK (stock >= 0),
+    CONSTRAINT chk_medicamento_precio CHECK (precio >= 0)
 );
 
-INSERT INTO medicamento VALUES
-(1,'Paracetamol','Dolor y fiebre'),
-(2,'Ibuprofeno','Antiinflamatorio'),
-(3,'Amoxicilina','Antibiótico'),
-(4,'Loratadina','Antialérgico'),
-(5,'Omeprazol','Protector gástrico'),
-(6,'Metformina','Control diabetes'),
-(7,'Losartan','Presión arterial'),
-(8,'Diclofenaco','Dolor muscular'),
-(9,'Vitamina C','Suplemento'),
-(10,'Azitromicina','Antibiótico respiratorio'),
-(11,'Naproxeno','Dolor intenso'),
-(12,'Insulina','Control glucosa'),
-(13,'Cetirizina','Alergias'),
-(14,'Prednisona','Inflamación'),
-(15,'Clonazepam','Ansiedad');
+INSERT INTO medicamento (id_medicamento,nombre,descripcion,stock,precio) VALUES
+(1,'Paracetamol','Dolor y fiebre',100,12.50),
+(2,'Ibuprofeno','Antiinflamatorio',80,18.00),
+(3,'Amoxicilina','Antibiótico',60,35.00),
+(4,'Loratadina','Antialérgico',75,16.50),
+(5,'Omeprazol','Protector gástrico',90,22.00),
+(6,'Metformina','Control diabetes',50,42.00),
+(7,'Losartan','Presión arterial',55,38.00),
+(8,'Diclofenaco','Dolor muscular',70,20.00),
+(9,'Vitamina C','Suplemento',120,10.00),
+(10,'Azitromicina','Antibiótico respiratorio',40,45.00),
+(11,'Naproxeno','Dolor intenso',65,24.00),
+(12,'Insulina','Control glucosa',30,95.00),
+(13,'Cetirizina','Alergias',85,17.00),
+(14,'Prednisona','Inflamación',45,28.00),
+(15,'Clonazepam','Ansiedad',35,32.00);
 
 -- =========================================
 -- TABLA RECETA
@@ -232,8 +241,8 @@ INSERT INTO medicamento VALUES
 
 CREATE TABLE receta (
     id_receta INT AUTO_INCREMENT PRIMARY KEY,
-    id_consulta INT,
-    fecha DATE,
+    id_consulta INT NOT NULL UNIQUE,
+    fecha DATE NOT NULL,
 
     FOREIGN KEY(id_consulta)
     REFERENCES consulta(id_consulta)
@@ -276,7 +285,7 @@ CREATE TABLE receta_medicamento (
 
     FOREIGN KEY(id_medicamento)
     REFERENCES medicamento(id_medicamento)
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
@@ -305,17 +314,18 @@ CREATE TABLE factura (
     id_factura INT AUTO_INCREMENT PRIMARY KEY,
     id_paciente INT,
     id_consulta INT,
-    numero_factura VARCHAR(50),
-    fecha_emision DATETIME,
+    numero_factura VARCHAR(50) NOT NULL UNIQUE,
+    fecha_emision DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     subtotal DECIMAL(10,2),
     impuestos DECIMAL(10,2),
     total DECIMAL(10,2),
     metodo_pago ENUM('Efectivo','Tarjeta','Transferencia','Pendiente'),
     estado ENUM('Pagada','Pendiente','Cancelada'),
+    stock_descontado BOOLEAN NOT NULL DEFAULT FALSE,
 
     FOREIGN KEY(id_paciente)
     REFERENCES paciente(id_paciente)
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE,
 
     FOREIGN KEY(id_consulta)
@@ -324,7 +334,7 @@ CREATE TABLE factura (
     ON UPDATE CASCADE
 );
 
-INSERT INTO factura VALUES
+INSERT INTO factura (id_factura,id_paciente,id_consulta,numero_factura,fecha_emision,subtotal,impuestos,total,metodo_pago,estado) VALUES
 (1,1,1,'FAC-001','2026-06-05 08:00:00',100,12,112,'Efectivo','Pagada'),
 (2,2,2,'FAC-002','2026-06-05 09:00:00',120,14.4,134.4,'Tarjeta','Pagada'),
 (3,3,3,'FAC-003','2026-06-05 10:00:00',150,18,168,'Transferencia','Pendiente'),
@@ -348,18 +358,26 @@ INSERT INTO factura VALUES
 CREATE TABLE factura_detalle (
     id_detalle INT AUTO_INCREMENT PRIMARY KEY,
     id_factura INT,
+    id_medicamento INT NULL,
     descripcion VARCHAR(255),
-    cantidad INT,
-    precio_unitario DECIMAL(10,2),
-    subtotal DECIMAL(10,2),
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    CONSTRAINT chk_factura_detalle_cantidad CHECK (cantidad > 0),
+    CONSTRAINT chk_factura_detalle_precio CHECK (precio_unitario >= 0),
 
     FOREIGN KEY(id_factura)
     REFERENCES factura(id_factura)
     ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+    FOREIGN KEY(id_medicamento)
+    REFERENCES medicamento(id_medicamento)
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 
-INSERT INTO factura_detalle VALUES
+INSERT INTO factura_detalle (id_detalle,id_factura,descripcion,cantidad,precio_unitario,subtotal) VALUES
 (1,1,'Consulta médica',1,100,100),
 (2,2,'Consulta médica',1,120,120),
 (3,3,'Consulta médica',1,150,150),
@@ -388,7 +406,7 @@ CREATE TABLE historial_medico (
 
     FOREIGN KEY(id_paciente)
     REFERENCES paciente(id_paciente)
-    ON DELETE CASCADE
+    ON DELETE RESTRICT
     ON UPDATE CASCADE
 );
 

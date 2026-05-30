@@ -90,7 +90,7 @@ exports.agregarHistorial = (req, res) => {
     const { id } = req.params;
     const { descripcion } = req.body;
 
-    if (!descripcion || !descripcion.trim())
+    if (!descripcion || !descripcion.trim() || descripcion.trim().length > 5000)
         return res.status(400).json({ message: 'La descripción es requerida' });
 
     const query = `INSERT INTO historial_medico (id_paciente, descripcion, fecha) VALUES (?, ?, CURDATE())`;

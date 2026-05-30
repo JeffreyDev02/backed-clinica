@@ -21,8 +21,10 @@ const medicoEspecialidadRoutes = require('./routes/medicoEspecialidadRoutes');
 const reporteRoutes = require('./routes/reporteRoutes');
 const expedienteRoutes = require('./routes/expedienteRoutes');
 const facturaRoutes = require('./routes/facturaRoutes');
+const { autenticar } = require('./middleware/auth');
 
 app.use('/api/users', userRoutes);
+app.use('/api', autenticar);
 app.use('/api/pacientes', pacienteRoutes);
 app.use('/api/medicos', medicoRoutes);
 app.use('/api/citas', citaRoutes);

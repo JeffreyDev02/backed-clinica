@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const reporteController = require('../controllers/reporteController');
+const { permitirRoles } = require('../middleware/auth');
 
 router.get('/home-stats',           reporteController.homeStats);
+router.use(permitirRoles('admin'));
 router.get('/resumen',              reporteController.obtenerResumen);
 router.get('/citas-por-estado',     reporteController.citasPorEstado);
 router.get('/citas-por-medico',     reporteController.citasPorMedico);
